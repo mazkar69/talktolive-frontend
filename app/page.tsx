@@ -1,12 +1,35 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import AuthPage from '@/components/auth/auth-page'
-import ChatApp from '@/components/chat/chat-app'
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import AuthPage from "@/components/auth/auth-page";
+import ChatApp from "@/components/chat/chat-app";
+import api from "@/lib/apiRequest";
 
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Here you can check for existing authentication, e.g., check localStorage or make an API call
+    const token = localStorage.getItem("chatToken");
+    if (token) {
+      api
+        .post("/api/user/verifyToken", { token })
+        .then((response) => {
+          // console.log("Token verification response:", response.data);
+          if (response.data._id) {
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        })
+        .catch(() => {
+          setIsAuthenticated(false);
+        });
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
 
   return (
     <main className="w-full h-screen bg-background">
@@ -35,5 +58,5 @@ export default function Home() {
         )}
       </AnimatePresence>
     </main>
-  )
+  );
 }

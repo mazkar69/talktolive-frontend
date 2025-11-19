@@ -8,6 +8,8 @@ yarn.lock
 # Build files
 dist/
 build/
+.next/
+
 
 # Logs
 logs/
@@ -25,6 +27,7 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+*.next
 
 # OS specific
 .DS_Store

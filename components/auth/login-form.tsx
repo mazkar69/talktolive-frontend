@@ -2,12 +2,16 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import api from '@/lib/apiRequest'
+import { useAppDispatch } from '@/store/hooks'
+import { setUser } from '@/store/slices/userSlice'
 
 interface LoginFormProps {
   onSuccess: () => void
 }
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
+  const dispatch = useAppDispatch()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -16,13 +20,24 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulate login delay
-    setTimeout(() => {
-      if (email && password) {
-        onSuccess()
-      }
+    try {
+      const response = await api.post('/api/user/login', {
+        email,
+        password,
+      })
+      
+      console.log('Login successful:', response.data)
+      
+      // Store user data in Redux store
+      dispatch(setUser(response.data))
+      
+      onSuccess()
+    } catch (error) {
+      console.error('Login error:', error)
+      alert('Invalid email or password. Please try again.')
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   return (

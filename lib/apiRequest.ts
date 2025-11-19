@@ -74,11 +74,3 @@ export function useAuthApi(url: string) {
 
 // -----------------------------------------------------------
 
-export async function getSignedUrl({ key, content_type }) {
-    const response = await apiClient.post("/bucket/signed_url", {
-        key,                //key = "public/" + key;
-        content_type,
-    });
-
-    return response.data;
-}

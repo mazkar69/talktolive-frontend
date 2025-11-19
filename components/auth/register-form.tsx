@@ -3,12 +3,15 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import api from '@/lib/apiRequest'
+import { useAppDispatch } from '@/store/hooks'
+import { setUser } from '@/store/slices/userSlice'
 
 interface RegisterFormProps {
   onSuccess: () => void
 }
 
 export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const dispatch = useAppDispatch()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,6 +37,10 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
         password,
       })
       console.log('Registration successful:', response.data)
+      
+      // Store user data in Redux store
+      dispatch(setUser(response.data))
+      
       onSuccess()
       setIsLoading(false)
       return
