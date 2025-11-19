@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+
+
+# Build files
+dist/
+build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+.github/*
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# MongoDB data
+data/
+*.dump
+
+# Coverage reports
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Debug files
+.debug
+
+# Documentation
+docs/generated/

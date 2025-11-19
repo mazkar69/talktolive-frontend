@@ -1,0 +1,155 @@
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import SearchUsers from './search-users'
+import CreateGroupModal from './create-group-modal'
+
+interface Chat {
+  id: string
+  name: string
+  type: 'direct' | 'group'
+  avatar: string
+  lastMessage: string
+}
+
+interface ChatSidebarProps {
+  chats: Chat[]
+  selectedChat: string | null
+  onSelectChat: (id: string) => void
+  onAddChat: (chat: Chat) => void
+}
+
+export default function ChatSidebar({ 
+  chats, 
+  selectedChat, 
+  onSelectChat,
+  onAddChat 
+}: ChatSidebarProps) {
+  const [showSearch, setShowSearch] = useState(false)
+  const [showCreateGroup, setShowCreateGroup] = useState(false)
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+        delayChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: { type: 'spring', stiffness: 100 },
+    },
+  }
+
+  return (
+    <div className="w-full md:w-80 bg-card border-r border-border flex flex-col">
+      {/* Header */}
+      <motion.div 
+        className="p-4 md:p-6 border-b border-border"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 100 }}
+      >
+        <h1 className="text-xl md:text-2xl font-bold mb-4">Messages</h1>
+        <div className="flex gap-2">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowSearch(!showSearch)}
+            className="flex-1 px-4 py-2 bg-muted rounded-lg text-muted-foreground hover:bg-accent transition-colors text-left text-sm font-medium"
+          >
+            + Chat
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowCreateGroup(!showCreateGroup)}
+            className="flex-1 px-4 py-2 bg-muted rounded-lg text-muted-foreground hover:bg-accent transition-colors text-left text-sm font-medium"
+          >
+            + Group
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Search Users Modal */}
+      {showSearch && (
+        <SearchUsers 
+          onClose={() => setShowSearch(false)}
+          onStartChat={(user) => {
+            const newChat: Chat = {
+              id: `user_${Date.now()}`,
+              name: user.name,
+              type: 'direct',
+              avatar: user.avatar,
+              lastMessage: ''
+            }
+            onAddChat(newChat)
+            onSelectChat(newChat.id)
+            setShowSearch(false)
+          }}
+        />
+      )}
+
+      {/* Create Group Modal */}
+      {showCreateGroup && (
+        <CreateGroupModal 
+          onClose={() => setShowCreateGroup(false)}
+          onCreateGroup={(group) => {
+            onAddChat(group)
+            onSelectChat(group.id)
+            setShowCreateGroup(false)
+          }}
+        />
+      )}
+
+      {/* Chats List */}
+      <motion.div 
+        className="flex-1 overflow-y-auto"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {chats.map((chat) => (
+          <motion.button
+            key={chat.id}
+            onClick={() => onSelectChat(chat.id)}
+            variants={itemVariants}
+            className={`w-full p-4 border-b border-border text-left transition-all hover:bg-accent/50 ${
+              selectedChat === chat.id ? 'bg-accent' : ''
+            }`}
+            whileHover={{ x: 4 }}
+          >
+            <div className="flex items-center gap-3">
+              <motion.span
+                className="text-2xl"
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: 'spring', stiffness: 200 }}
+              >
+                {chat.avatar}
+              </motion.span>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-medium truncate text-sm md:text-base">{chat.name}</h3>
+                <p className="text-xs text-muted-foreground truncate">{chat.lastMessage}</p>
+              </div>
+              {selectedChat === chat.id && (
+                <motion.div
+                  className="w-2 h-2 bg-blue-500 rounded-full"
+                  layoutId="chatIndicator"
+                  transition={{ type: 'spring', stiffness: 200 }}
+                />
+              )}
+            </div>
+          </motion.button>
+        ))}
+      </motion.div>
+    </div>
+  )
+}
