@@ -5,11 +5,9 @@ import { motion } from 'framer-motion'
 import LoginForm from './login-form'
 import RegisterForm from './register-form'
 
-interface AuthPageProps {
-  onAuthenticate: () => void
-}
 
-export default function AuthPage({ onAuthenticate }: AuthPageProps) {
+
+export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
 
   return (
@@ -54,9 +52,9 @@ export default function AuthPage({ onAuthenticate }: AuthPageProps) {
           {/* Form Content */}
           <div className="px-8 py-8">
             {isLogin ? (
-              <LoginForm onSuccess={onAuthenticate} />
+              <LoginForm />
             ) : (
-              <RegisterForm onSuccess={onAuthenticate} />
+              <RegisterForm />
             )}
           </div>
         </div>

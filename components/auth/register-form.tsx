@@ -1,16 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import api from '@/lib/apiRequest'
 import { useAppDispatch } from '@/store/hooks'
 import { setUser } from '@/store/slices/userSlice'
 
-interface RegisterFormProps {
-  onSuccess: () => void
-}
-
-export default function RegisterForm({ onSuccess }: RegisterFormProps) {
+export default function RegisterForm() {
+  const router = useRouter()
   const dispatch = useAppDispatch()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -41,7 +39,9 @@ export default function RegisterForm({ onSuccess }: RegisterFormProps) {
       // Store user data in Redux store
       dispatch(setUser(response.data))
       
-      onSuccess()
+      // Redirect to home/chat page
+      router.push('/')
+      
       setIsLoading(false)
       return
     } catch (error) {

@@ -8,15 +8,16 @@ import ThemeToggle from '@/components/theme-toggle'
 import VideoCallModal from './video-call-modal'
 import NotificationsDropdown from './notifications-dropdown'
 import SettingsModal from './settings-modal'
+import { ChatInterface } from '@/lib/interfaces'
 
 export default function ChatApp() {
   const [selectedChat, setSelectedChat] = useState<string | null>('user1')
-  const [chats, setChats] = useState([
-    { id: 'user1', name: 'Sarah Wilson', type: 'direct', avatar: '👩‍💼', lastMessage: 'See you tomorrow!' },
-    { id: 'user2', name: 'Michael Chen', type: 'direct', avatar: '👨‍💻', lastMessage: 'Thanks for the update' },
-    { id: 'group1', name: 'Design Team', type: 'group', avatar: '👥', lastMessage: 'New designs are ready' },
-    { id: 'user3', name: 'Emily Rodriguez', type: 'direct', avatar: '👩‍🎨', lastMessage: 'Love the new design!' },
+  const [chats, setChats] = useState<ChatInterface[]>([
+    { _id: 'user1', chatName: 'Alice', isGroupChat: false, users: [],  latestMessage: 'Hey there!',  },
+    { _id: 'user2', chatName: 'Bob', isGroupChat: false, users: [],  latestMessage: 'What\'s up?' },
+    { _id: 'group1', chatName: 'Study Group', isGroupChat: true, users: [], latestMessage: 'Don\'t forget the meeting.' },
   ])
+
   const [showVideoCall, setShowVideoCall] = useState(false)
   const [showMobileChat, setShowMobileChat] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
@@ -75,9 +76,9 @@ export default function ChatApp() {
             <div className="hidden md:flex items-center gap-2">
               <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">TalkToLive</span>
             </div>
-            <span className="text-2xl">{chats.find(c => c.id === selectedChat)?.avatar}</span>
+            {/* <span className="text-2xl">{chats.find(c => c._id === selectedChat)?.avatar}</span> */}
             <div className="min-w-0">
-              <h2 className="font-semibold text-sm md:text-base truncate">{chats.find(c => c.id === selectedChat)?.name}</h2>
+              <h2 className="font-semibold text-sm md:text-base truncate">{chats.find(c => c._id === selectedChat)?.chatName}</h2>
               <p className="text-xs text-muted-foreground">Active now</p>
             </div>
           </div>

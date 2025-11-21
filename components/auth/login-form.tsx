@@ -1,16 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import api from '@/lib/apiRequest'
 import { useAppDispatch } from '@/store/hooks'
 import { setUser } from '@/store/slices/userSlice'
 
-interface LoginFormProps {
-  onSuccess: () => void
-}
-
-export default function LoginForm({ onSuccess }: LoginFormProps) {
+export default function LoginForm() {
+  const router = useRouter()
   const dispatch = useAppDispatch()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,7 +29,8 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
       // Store user data in Redux store
       dispatch(setUser(response.data))
       
-      onSuccess()
+      // Redirect to home/chat page
+      router.push('/')
     } catch (error) {
       console.error('Login error:', error)
       alert('Invalid email or password. Please try again.')

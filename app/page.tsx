@@ -1,62 +1,68 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import AuthPage from "@/components/auth/auth-page";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import ChatApp from "@/components/chat/chat-app";
 import api from "@/lib/apiRequest";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { clearUser, selectIsAuthenticated, selectUser, setUser } from "@/store/slices/userSlice";
 
 export default function Home() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+  const user = useAppSelector(selectUser);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const dispatch = useAppDispatch();
+
+  console.log("Current user from Redux store:", user);
+  console.log("Is Authenticated:", isAuthenticated);
 
   useEffect(() => {
-    // Here you can check for existing authentication, e.g., check localStorage or make an API call
+    // If user is authenticated, stay on chat page
+    if (isAuthenticated) {
+      return;
+    }
+
+    // If no user in Redux, check localStorage for token
     const token = localStorage.getItem("chatToken");
     if (token) {
+      // Verify token with backend
       api
         .post("/api/user/verifyToken", { token })
         .then((response) => {
-          // console.log("Token verification response:", response.data);
           if (response.data._id) {
-            setIsAuthenticated(true);
+            dispatch(setUser(response.data));
           } else {
-            setIsAuthenticated(false);
+            dispatch(clearUser());
+            localStorage.removeItem("chatToken");
+            router.push("/auth");
           }
         })
         .catch(() => {
-          setIsAuthenticated(false);
+          dispatch(clearUser());
+          localStorage.removeItem("chatToken");
+          router.push("/auth");
         });
     } else {
-      setIsAuthenticated(false);
+      // No token found, redirect to auth page
+      router.push("/auth");
     }
-  }, []);
+  }, [isAuthenticated, dispatch, router]);
+
+  // Show nothing while checking authentication
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
-    <main className="w-full h-screen bg-background">
-      <AnimatePresence mode="wait">
-        {!isAuthenticated ? (
-          <motion.div
-            key="auth"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <AuthPage onAuthenticate={() => setIsAuthenticated(true)} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="chat"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="w-full h-screen"
-          >
-            <ChatApp />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </main>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="w-full h-screen"
+    >
+      <ChatApp />
+    </motion.div>
   );
 }

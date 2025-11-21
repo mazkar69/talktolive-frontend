@@ -25,13 +25,7 @@ interface CreateGroupModalProps {
 export default function CreateGroupModal({ onClose, onCreateGroup }: CreateGroupModalProps) {
   const [groupName, setGroupName] = useState('')
   const [selectedMembers, setSelectedMembers] = useState<string[]>([])
-  
-  const availableUsers: User[] = [
-    { id: 'user1', name: 'Sarah Wilson', avatar: '👩‍💼' },
-    { id: 'user2', name: 'Michael Chen', avatar: '👨‍💻' },
-    { id: 'user3', name: 'Emily Rodriguez', avatar: '👩‍🎨' },
-    { id: 'user4', name: 'David Park', avatar: '👨‍🔬' },
-  ]
+  const [users, setUsers] = useState<User[]>([])
 
   const handleCreateGroup = () => {
     if (groupName.trim() && selectedMembers.length > 0) {
@@ -81,7 +75,7 @@ export default function CreateGroupModal({ onClose, onCreateGroup }: CreateGroup
 
         <div className="flex-1 overflow-y-auto p-4">
           <p className="text-sm font-medium text-muted-foreground mb-3">Add members</p>
-          {availableUsers.map((user) => (
+          {users.map((user) => (
             <motion.button
               key={user.id}
               onClick={() => toggleMember(user.id)}

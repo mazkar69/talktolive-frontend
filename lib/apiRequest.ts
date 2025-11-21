@@ -25,14 +25,14 @@ export const authMultiFormApi = axios.create({
 
 
 authApi.interceptors.request.use(config => {
-    config.headers['authorization'] = `Bearer ${localStorage.getItem("web-token")}`
+    config.headers['authorization'] = `Bearer ${localStorage.getItem("chatToken")}`
     return config
 }, error => {
     return Promise.reject(error)
 })
 
 authMultiFormApi.interceptors.request.use(config => {
-    config.headers['Authorization'] = `Bearer ${localStorage.getItem("web-token")}`
+    config.headers['authorization'] = `Bearer ${localStorage.getItem("chatToken")}`
     config.headers["content-type"] = "multipart/form-data"
     return config
 }, error => {

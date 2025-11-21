@@ -4,20 +4,15 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import SearchUsers from './search-users'
 import CreateGroupModal from './create-group-modal'
+import { ChatInterface, UserInterface } from '@/lib/interfaces'
 
-interface Chat {
-  id: string
-  name: string
-  type: 'direct' | 'group'
-  avatar: string
-  lastMessage: string
-}
+
 
 interface ChatSidebarProps {
-  chats: Chat[]
+  chats: ChatInterface[]
   selectedChat: string | null
   onSelectChat: (id: string) => void
-  onAddChat: (chat: Chat) => void
+  onAddChat: (chat: ChatInterface) => void
 }
 
 export default function ChatSidebar({ 
@@ -26,6 +21,7 @@ export default function ChatSidebar({
   onSelectChat,
   onAddChat 
 }: ChatSidebarProps) {
+
   const [showSearch, setShowSearch] = useState(false)
   const [showCreateGroup, setShowCreateGroup] = useState(false)
 
@@ -84,22 +80,22 @@ export default function ChatSidebar({
         <SearchUsers 
           onClose={() => setShowSearch(false)}
           onStartChat={(user) => {
-            const newChat: Chat = {
-              id: `user_${Date.now()}`,
-              name: user.name,
-              type: 'direct',
-              avatar: user.avatar,
-              lastMessage: ''
+            const newChat: ChatInterface = {
+              _id: `user_${Date.now()}`,
+              chatName: user.name,
+              isGroupChat: false,
+              latestMessage: '',
+              users: [user],
             }
             onAddChat(newChat)
-            onSelectChat(newChat.id)
+            onSelectChat(newChat._id)
             setShowSearch(false)
           }}
         />
       )}
 
       {/* Create Group Modal */}
-      {showCreateGroup && (
+      {/* {showCreateGroup && (
         <CreateGroupModal 
           onClose={() => setShowCreateGroup(false)}
           onCreateGroup={(group) => {
@@ -108,7 +104,7 @@ export default function ChatSidebar({
             setShowCreateGroup(false)
           }}
         />
-      )}
+      )} */}
 
       {/* Chats List */}
       <motion.div 
@@ -119,27 +115,27 @@ export default function ChatSidebar({
       >
         {chats.map((chat) => (
           <motion.button
-            key={chat.id}
-            onClick={() => onSelectChat(chat.id)}
+            key={chat._id}
+            onClick={() => onSelectChat(chat._id)}
             variants={itemVariants}
             className={`w-full p-4 border-b border-border text-left transition-all hover:bg-accent/50 ${
-              selectedChat === chat.id ? 'bg-accent' : ''
+              selectedChat === chat._id ? 'bg-accent' : ''
             }`}
             whileHover={{ x: 4 }}
           >
             <div className="flex items-center gap-3">
-              <motion.span
+              {/* <motion.span
                 className="text-2xl"
                 whileHover={{ scale: 1.1 }}
                 transition={{ type: 'spring', stiffness: 200 }}
               >
-                {chat.avatar}
-              </motion.span>
+                {chat.pic}
+              </motion.span> */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium truncate text-sm md:text-base">{chat.name}</h3>
-                <p className="text-xs text-muted-foreground truncate">{chat.lastMessage}</p>
+                <h3 className="font-medium truncate text-sm md:text-base">{chat.chatName}</h3>
+                <p className="text-xs text-muted-foreground truncate">{chat.latestMessage}</p>
               </div>
-              {selectedChat === chat.id && (
+              {selectedChat === chat._id && (
                 <motion.div
                   className="w-2 h-2 bg-blue-500 rounded-full"
                   layoutId="chatIndicator"

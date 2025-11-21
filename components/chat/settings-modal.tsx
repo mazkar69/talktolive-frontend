@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useAppDispatch } from '@/store/hooks'
+import { clearUser } from '@/store/slices/userSlice'
 
 interface UserProfile {
   name: string
@@ -17,6 +19,7 @@ interface SettingsModalProps {
 }
 
 export default function SettingsModal({ userProfile, setUserProfile, onClose }: SettingsModalProps) {
+  const dispatch = useAppDispatch()
   const [formData, setFormData] = useState(userProfile)
   const [saved, setSaved] = useState(false)
 
@@ -24,6 +27,14 @@ export default function SettingsModal({ userProfile, setUserProfile, onClose }: 
     setUserProfile(formData)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleLogout = () => {
+    // Clear user from Redux store
+    dispatch(clearUser())
+    // Clear token from localStorage
+    localStorage.removeItem('chatToken')
+    onClose()
   }
 
   return (
@@ -155,22 +166,32 @@ export default function SettingsModal({ userProfile, setUserProfile, onClose }: 
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-border sticky bottom-0 bg-card flex gap-3 justify-end">
+          <div className="p-6 border-t border-border sticky bottom-0 bg-card">
+            <div className="flex gap-3 justify-end mb-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg border border-border hover:bg-accent/20 transition-colors font-medium text-sm"
+              >
+                Cancel
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSave}
+                className="px-4 py-2 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 transition-colors font-medium text-sm"
+              >
+                {saved ? '✓ Saved' : 'Save Changes'}
+              </motion.button>
+            </div>
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-border hover:bg-accent/20 transition-colors font-medium text-sm"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleLogout}
+              className="w-full px-4 py-2 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors font-medium text-sm"
             >
-              Cancel
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleSave}
-              className="px-4 py-2 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 transition-colors font-medium text-sm"
-            >
-              {saved ? '✓ Saved' : 'Save Changes'}
+              Logout
             </motion.button>
           </div>
         </div>
