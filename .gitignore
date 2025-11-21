@@ -20,6 +20,7 @@ yarn-error.log*
 
 # Editor directories and files
 .idea/
+.next/
 .vscode/
 .github/*
 *.suo

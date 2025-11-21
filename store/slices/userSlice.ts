@@ -30,11 +30,13 @@ const userSlice = createSlice({
 
       //set token in local storage
       localStorage.setItem('chatToken', action.payload.token);
+      localStorage.setItem('userInfo', JSON.stringify(action.payload));
     },
     clearUser: (state) => {
       state.user = null;
       state.isAuthenticated = false;
       localStorage.removeItem('chatToken');
+      localStorage.removeItem('userInfo');
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {

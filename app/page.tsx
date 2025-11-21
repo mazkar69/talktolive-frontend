@@ -17,6 +17,7 @@ export default function Home() {
   console.log("Current user from Redux store:", user);
   console.log("Is Authenticated:", isAuthenticated);
 
+
   useEffect(() => {
     // If user is authenticated, stay on chat page
     if (isAuthenticated) {
@@ -54,6 +55,8 @@ export default function Home() {
     return null;
   }
 
+
+   
   return (
     <motion.div
       initial={{ opacity: 0 }}

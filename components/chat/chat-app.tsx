@@ -1,64 +1,97 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import ChatSidebar from './chat-sidebar'
-import ChatWindow from './chat-window'
-import ThemeToggle from '@/components/theme-toggle'
-import VideoCallModal from './video-call-modal'
-import NotificationsDropdown from './notifications-dropdown'
-import SettingsModal from './settings-modal'
-import { ChatInterface } from '@/lib/interfaces'
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import ChatSidebar from "./chat-sidebar";
+import ChatWindow from "./chat-window";
+import ThemeToggle from "@/components/theme-toggle";
+import VideoCallModal from "./video-call-modal";
+import NotificationsDropdown from "./notifications-dropdown";
+import SettingsModal from "./settings-modal";
+import { authApi } from "@/lib/apiRequest";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setChats,
+  selectAllChats,
+  selectSelectedChatId,
+  selectChat,
+  addChat,
+  setLoading,
+  setError,
+} from "@/store/slices/chatsSlice";
 
 export default function ChatApp() {
-  const [selectedChat, setSelectedChat] = useState<string | null>('user1')
-  const [chats, setChats] = useState<ChatInterface[]>([
-    { _id: 'user1', chatName: 'Alice', isGroupChat: false, users: [],  latestMessage: 'Hey there!',  },
-    { _id: 'user2', chatName: 'Bob', isGroupChat: false, users: [],  latestMessage: 'What\'s up?' },
-    { _id: 'group1', chatName: 'Study Group', isGroupChat: true, users: [], latestMessage: 'Don\'t forget the meeting.' },
-  ])
+  const dispatch = useAppDispatch();
+  const chats = useAppSelector(selectAllChats);
+  const selectedChat = useAppSelector(selectSelectedChatId);
 
-  const [showVideoCall, setShowVideoCall] = useState(false)
-  const [showMobileChat, setShowMobileChat] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
+  const [showVideoCall, setShowVideoCall] = useState(false);
+  const [showMobileChat, setShowMobileChat] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    avatar: '👤',
+    name: "John Doe",
+    email: "john@example.com",
+    avatar: "👤",
     hideFromSearch: false,
-  })
+  });
 
   const handleSelectChat = (id: string) => {
-    setSelectedChat(id)
-    setShowMobileChat(true)
-  }
+    dispatch(selectChat(id));
+    setShowMobileChat(true);
+  };
 
   const handleBackToList = () => {
-    setShowMobileChat(false)
-  }
+    setShowMobileChat(false);
+  };
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      dispatch(setLoading(true));
+      
+      try {
+        const response = await authApi.get("/api/chat");
+        dispatch(setChats(response.data));
+      } catch (error) {
+        console.error("Error fetching chats:", error);
+        dispatch(setError("Failed to fetch chats"));
+      }
+    };
+
+    fetchChats();
+  }, [dispatch]);
+
+
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       <div className="hidden md:flex md:flex-col">
-        <ChatSidebar 
-          chats={chats} 
+        <ChatSidebar
+          chats={chats}
           selectedChat={selectedChat}
           onSelectChat={handleSelectChat}
-          onAddChat={(chat) => setChats([...chats, chat])}
+          onAddChat={(chat) => dispatch(addChat(chat))}
         />
       </div>
 
-      <div className={`md:hidden w-full ${showMobileChat ? 'hidden' : 'flex flex-col'}`}>
-        <ChatSidebar 
-          chats={chats} 
+      <div
+        className={`md:hidden w-full ${
+          showMobileChat ? "hidden" : "flex flex-col"
+        }`}
+      >
+        <ChatSidebar
+          chats={chats}
           selectedChat={selectedChat}
           onSelectChat={handleSelectChat}
-          onAddChat={(chat) => setChats([...chats, chat])}
+          onAddChat={(chat) => dispatch(addChat(chat))}
         />
       </div>
 
-      <div className={`flex-1 flex flex-col ${!showMobileChat && 'hidden md:flex'}`}>
-        <motion.header 
+      <div
+        className={`flex-1 flex flex-col ${
+          !showMobileChat && "hidden md:flex"
+        }`}
+      >
+        <motion.header
           className="h-16 bg-card border-b border-border px-4 md:px-6 flex items-center justify-between"
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -74,11 +107,15 @@ export default function ChatApp() {
               ←
             </motion.button>
             <div className="hidden md:flex items-center gap-2">
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">TalkToLive</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                TalkToLive
+              </span>
             </div>
             {/* <span className="text-2xl">{chats.find(c => c._id === selectedChat)?.avatar}</span> */}
             <div className="min-w-0">
-              <h2 className="font-semibold text-sm md:text-base truncate">{chats.find(c => c._id === selectedChat)?.chatName}</h2>
+              <h2 className="font-semibold text-sm md:text-base truncate">
+                {chats.find((c) => c._id === selectedChat)?.chatName}
+              </h2>
               <p className="text-xs text-muted-foreground">Active now</p>
             </div>
           </div>
@@ -114,12 +151,12 @@ export default function ChatApp() {
       )}
 
       {showSettings && (
-        <SettingsModal 
+        <SettingsModal
           userProfile={userProfile}
           setUserProfile={setUserProfile}
           onClose={() => setShowSettings(false)}
         />
       )}
     </div>
-  )
+  );
 }
