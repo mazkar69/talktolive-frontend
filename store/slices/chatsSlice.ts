@@ -101,12 +101,14 @@ export const {
 
 // Selectors
 export const selectAllChats = (state: { chats: ChatsState }) => state.chats.chats;
+
 export const selectSelectedChatId = (state: { chats: ChatsState }) => state.chats.selectedChatId;
-export const selectSelectedChat = (state: { chats: ChatsState }) => 
-  state.chats.chats.find(chat => chat._id === state.chats.selectedChatId) || null;
+
+export const selectSelectedChat = (state: { chats: ChatsState }) => state.chats.chats.find(chat => chat._id === state.chats.selectedChatId) || null;
+
 export const selectChatsLoading = (state: { chats: ChatsState }) => state.chats.isLoading;
 export const selectChatsError = (state: { chats: ChatsState }) => state.chats.error;
-export const selectChatById = (chatId: string) => (state: { chats: ChatsState }) =>
-  state.chats.chats.find(chat => chat._id === chatId) || null;
+
+export const selectChatById = (chatId: string) => (state: { chats: ChatsState }) => state.chats.chats.find(chat => chat._id === chatId) || null;
 
 export default chatsSlice.reducer;

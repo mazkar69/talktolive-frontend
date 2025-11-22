@@ -13,7 +13,7 @@ interface User {
 
 interface SearchUsersProps {
   onClose: () => void;
-  onStartChat: (user: User) => void;
+  onStartChat: (userId: string) => void;
 }
 
 export default function SearchUsers({
@@ -103,7 +103,7 @@ export default function SearchUsers({
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: index * 0.05 }}
                   whileHover={{ x: 4 }}
-                  onClick={() => onStartChat(user)}
+                  onClick={() => onStartChat(user?._id)}
                   className="w-full p-4 border-b border-border text-left hover:bg-accent/50 transition-colors flex items-center gap-3"
                 >
                   <motion.span className="text-2xl" whileHover={{ scale: 1.1 }}>

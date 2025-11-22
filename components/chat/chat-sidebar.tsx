@@ -9,14 +9,14 @@ import { getChatImage, getChatName } from "@/lib/utils";
 
 interface ChatSidebarProps {
   chats: ChatInterface[];
-  selectedChat: string | null;
+  selectedChatId: string | null;
   onSelectChat: (id: string) => void;
-  onAddChat: (chat: ChatInterface) => void;
+  onAddChat: (userId: string) => void;
 }
 
 export default function ChatSidebar({
   chats,
-  selectedChat,
+  selectedChatId,
   onSelectChat,
   onAddChat,
 }: ChatSidebarProps) {
@@ -45,15 +45,15 @@ export default function ChatSidebar({
   // console.log("Chats:", chats);
 
   return (
-    <div className="w-full md:w-80 bg-card border-r border-border flex flex-col">
+    <div className=" h-full w-full md:w-80 bg-card border-r border-border flex flex-col ">
       {/* Header */}
       <motion.div
-        className="p-4 md:p-6 border-b border-border"
+        className="p-4 md:p-6 border-b border-border sticky top-0 z-10 bg-card "
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 100 }}
       >
-        <h1 className="text-xl md:text-2xl font-bold mb-4">Messages</h1>
+        <h1 className="text-xl md:text-2xl font-bold mb-4">TalkToLive</h1>
         <div className="flex gap-2">
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -78,16 +78,8 @@ export default function ChatSidebar({
       {showSearch && (
         <SearchUsers
           onClose={() => setShowSearch(false)}
-          onStartChat={(user) => {
-            const newChat: ChatInterface = {
-              _id: `user_${Date.now()}`,
-              chatName: user.name,
-              isGroupChat: false,
-              latestMessage: "",
-              users: [user],
-            };
-            onAddChat(newChat);
-            onSelectChat(newChat._id);
+          onStartChat={(userId) => {
+            onAddChat(userId);
             setShowSearch(false);
           }}
         />
@@ -105,71 +97,77 @@ export default function ChatSidebar({
         />
       )} */}
 
-      {/* Chats List */}
-      <motion.div
-        className="flex-1 "
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {chats?.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center h-full p-8 text-center"
-          >
-            <p className="text-muted-foreground text-sm">No chats yet</p>
-            <p className="text-muted-foreground text-xs mt-2">
-              Start a conversation by clicking + Chat
-            </p>
-          </motion.div>
-        ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            key={chats.length} // Re-trigger animation when chats array changes
-          >
-            {chats.map((chat) => (
-              <motion.button
-                key={chat._id}
-                onClick={() => onSelectChat(chat._id)}
-                variants={itemVariants}
-                className={`w-full p-4 border-b border-border text-left transition-all hover:bg-accent/50 ${
-                  selectedChat === chat._id ? "bg-accent" : ""
-                }`}
-                whileHover={{ x: 4 }}
-                transition={{ type: "spring", stiffness: 100 }}
-              >
-                <div className="flex items-center gap-3">
-                  <motion.span
-                    className="text-2xl"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 200 }}
-                  >
-                    <img src={getChatImage(chat)} alt={getChatName(chat)} className="w-10 h-10 rounded-full" />
-                  </motion.span>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium truncate text-sm md:text-base">
-                      {getChatName(chat)}
-                    </h3>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {chat?.latestMessage}
-                    </p>
-                  </div>
-                  {selectedChat === chat._id && (
-                    <motion.div
-                      className="w-2 h-2 bg-blue-500 rounded-full"
-                      layoutId="chatIndicator"
+      <div className="md:overflow-y-scroll ">
+        {/* Chats List */}
+        <motion.div
+          className="flex-1"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          {chats?.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center h-full p-8 text-center"
+            >
+              <p className="text-muted-foreground text-sm">No chats yet</p>
+              <p className="text-muted-foreground text-xs mt-2">
+                Start a conversation by clicking + Chat
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              key={chats.length} // Re-trigger animation when chats array changes
+            >
+              {chats.map((chat) => (
+                <motion.button
+                  key={chat._id}
+                  onClick={() => onSelectChat(chat._id)}
+                  variants={itemVariants}
+                  className={`w-full p-4 border-b border-border text-left transition-all hover:bg-accent/50 ${
+                    selectedChatId === chat._id ? "bg-accent" : ""
+                  }`}
+                  whileHover={{ x: 4 }}
+                  transition={{ type: "spring", stiffness: 100 }}
+                >
+                  <div className="flex items-center gap-3">
+                    <motion.span
+                      className="text-2xl"
+                      whileHover={{ scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 200 }}
-                    />
-                  )}
-                </div>
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
-      </motion.div>
+                    >
+                      <img
+                        src={getChatImage(chat)}
+                        alt={getChatName(chat)}
+                        className="w-10 h-10 rounded-full"
+                      />
+                    </motion.span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate text-sm md:text-base">
+                        {getChatName(chat)}
+                      </h3>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {chat?.latestMessage}
+                      </p>
+                    </div>
+                    {selectedChatId === chat._id && (
+                      <motion.div
+                        className="w-2 h-2 bg-blue-500 rounded-full"
+                        layoutId="chatIndicator"
+                        transition={{ type: "spring", stiffness: 200 }}
+                      />
+                    )}
+                  </div>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 }

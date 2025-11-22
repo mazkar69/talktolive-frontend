@@ -65,7 +65,7 @@ export default function ChatWindow({ selectedChatId }: ChatWindowProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background ">
       {/* Messages Area with Page Transition */}
       <motion.div
         key={selectedChatId}

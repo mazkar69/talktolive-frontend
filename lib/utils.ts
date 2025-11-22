@@ -6,7 +6,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getChatName(chat: ChatInterface) {
+export function getChatName(chat: ChatInterface|null) {
+
+  if(!chat) return "Unknown Chat";
   const user = localStorage.getItem("userInfo");
   const currentUserId = user ? JSON.parse(user)._id : null;
 

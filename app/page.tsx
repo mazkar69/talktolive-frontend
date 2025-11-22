@@ -7,10 +7,11 @@ import ChatApp from "@/components/chat/chat-app";
 import api from "@/lib/apiRequest";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearUser, selectIsAuthenticated, selectUser, setUser } from "@/store/slices/userSlice";
+import { UserInterface } from "@/lib/interfaces";
 
 export default function Home() {
   const router = useRouter();
-  const user = useAppSelector(selectUser);
+  const user:UserInterface | null = useAppSelector(selectUser);
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const dispatch = useAppDispatch();
 
@@ -65,7 +66,7 @@ export default function Home() {
       transition={{ duration: 0.3 }}
       className="w-full h-screen"
     >
-      <ChatApp />
+      <ChatApp user={user || null} />
     </motion.div>
   );
 }
