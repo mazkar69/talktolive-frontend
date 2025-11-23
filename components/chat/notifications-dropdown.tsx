@@ -1,34 +1,35 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import {
+  selectAllNotifications,
+  selectTotalNotificationCount,
+  clearNotifications,
+} from "@/store/slices/notificationSlice";
+import { getChatName } from "@/lib/utils";
+import { selectChat } from "@/store/slices/chatsSlice";
 
-interface Notification {
-  id: string
-  message: string
-  timestamp: string
-  read: boolean
-}
 
 export default function NotificationsDropdown() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [notifications, setNotifications] = useState<Notification[]>([
-    { id: '1', message: 'Sarah sent you a message', timestamp: '2 min ago', read: false },
-    { id: '2', message: 'Michael added you to Design Team', timestamp: '1 hour ago', read: false },
-    { id: '3', message: 'Emily liked your message', timestamp: '3 hours ago', read: true },
-  ])
+  const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useAppDispatch();
+  const notifications = useAppSelector(selectAllNotifications);
+  const totalCount = useAppSelector(selectTotalNotificationCount);
 
-  const unreadCount = notifications.filter(n => !n.read).length
-
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ))
-  }
+  const handleNotificationClick = async (chatId: string) => {
+    try {
+      dispatch(selectChat(chatId));
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Error handling notification click:", error);
+    }
+  };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })))
-  }
+    dispatch(clearNotifications());
+  };
 
   return (
     <div className="relative">
@@ -40,13 +41,13 @@ export default function NotificationsDropdown() {
         title="Notifications"
       >
         🔔
-        {unreadCount > 0 && (
+        {totalCount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             className="absolute top-1 right-1 w-5 h-5 bg-destructive rounded-full flex items-center justify-center text-xs text-white font-bold"
           >
-            {unreadCount}
+            {totalCount > 99 ? "99+" : totalCount}
           </motion.span>
         )}
       </motion.button>
@@ -69,14 +70,14 @@ export default function NotificationsDropdown() {
             >
               <div className="p-4 border-b border-border flex items-center justify-between sticky top-0 bg-card">
                 <h3 className="font-semibold">Notifications</h3>
-                {unreadCount > 0 && (
+                {totalCount > 0 && (
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleMarkAllAsRead}
-                    className="text-xs text-accent hover:text-accent/80 transition-colors"
+                    className="text-xs text-blue-500 hover:text-blue-600 transition-colors"
                   >
-                    Mark all as read
+                    Clear all
                   </motion.button>
                 )}
               </div>
@@ -87,15 +88,27 @@ export default function NotificationsDropdown() {
                     No notifications yet
                   </div>
                 ) : (
-                  notifications.map(notification => (
+                  notifications.map((notification) => (
                     <motion.div
-                      key={notification.id}
-                      whileHover={{ backgroundColor: 'var(--color-accent)' }}
-                      className={`p-4 cursor-pointer transition-colors ${!notification.read ? 'bg-accent/20' : ''}`}
-                      onClick={() => handleMarkAsRead(notification.id)}
+                      key={notification.chat._id}
+                      whileHover={{ backgroundColor: "var(--color-accent)" }}
+                      className="p-4 cursor-pointer transition-colors bg-accent/20 hover:bg-accent/30"
+                      onClick={() =>
+                        handleNotificationClick(notification.chat._id)
+                      }
                     >
-                      <p className="text-sm font-medium text-foreground">{notification.message}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{notification.timestamp}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-foreground">
+                          {getChatName(notification.chat)}
+                        </p>
+                        <span className="text-xs font-semibold bg-destructive text-white rounded-full px-2 py-0.5">
+                          {notification.count}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {notification.count} new{" "}
+                        {notification.count === 1 ? "message" : "messages"}
+                      </p>
                     </motion.div>
                   ))
                 )}
@@ -105,5 +118,5 @@ export default function NotificationsDropdown() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

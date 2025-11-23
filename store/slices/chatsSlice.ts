@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ChatInterface } from '@/lib/interfaces';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ChatInterface, MessageInterface } from "@/lib/interfaces";
 
 interface ChatsState {
   chats: ChatInterface[];
@@ -16,7 +16,7 @@ const initialState: ChatsState = {
 };
 
 const chatsSlice = createSlice({
-  name: 'chats',
+  name: "chats",
   initialState,
   reducers: {
     // Set all chats
@@ -25,34 +25,45 @@ const chatsSlice = createSlice({
       state.isLoading = false;
       state.error = null;
     },
-    
+
     // Add a single chat
     addChat: (state, action: PayloadAction<ChatInterface>) => {
-      const existingIndex = state.chats.findIndex(chat => chat._id === action.payload._id);
+      const existingIndex = state.chats.findIndex(
+        (chat) => chat._id === action.payload._id
+      );
       if (existingIndex === -1) {
         state.chats.unshift(action.payload);
       }
     },
-    
+
     // Update a chat
     updateChat: (state, action: PayloadAction<ChatInterface>) => {
-      const index = state.chats.findIndex(chat => chat._id === action.payload._id);
+      const index = state.chats.findIndex(
+        (chat) => chat._id === action.payload._id
+      );
       if (index !== -1) {
         state.chats[index] = action.payload;
       }
     },
-    
+
     // Delete a chat
     deleteChat: (state, action: PayloadAction<string>) => {
-      state.chats = state.chats.filter(chat => chat._id !== action.payload);
+      state.chats = state.chats.filter((chat) => chat._id !== action.payload);
       if (state.selectedChatId === action.payload) {
         state.selectedChatId = null;
       }
     },
-    
+
     // Update latest message for a chat
-    updateLatestMessage: (state, action: PayloadAction<{ chatId: string; message: string }>) => {
-      const index = state.chats.findIndex(chat => chat._id === action.payload.chatId);
+    updateLatestMessage: (
+      state,
+      action: PayloadAction<{ message: MessageInterface }>
+    ) => {
+      const chatId = action.payload.message.chat as string;
+
+      const index = state.chats.findIndex(
+        (chat) => chat._id === chatId
+      );
       if (index !== -1) {
         state.chats[index].latestMessage = action.payload.message;
         // Move chat to top of list
@@ -60,23 +71,23 @@ const chatsSlice = createSlice({
         state.chats.unshift(chat);
       }
     },
-    
+
     // Select a chat
     selectChat: (state, action: PayloadAction<string | null>) => {
       state.selectedChatId = action.payload;
     },
-    
+
     // Set loading state
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
-    
+
     // Set error
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
       state.isLoading = false;
     },
-    
+
     // Clear all chats
     clearChats: (state) => {
       state.chats = [];
@@ -100,15 +111,23 @@ export const {
 } = chatsSlice.actions;
 
 // Selectors
-export const selectAllChats = (state: { chats: ChatsState }) => state.chats.chats;
+export const selectAllChats = (state: { chats: ChatsState }) =>
+  state.chats.chats;
 
-export const selectSelectedChatId = (state: { chats: ChatsState }) => state.chats.selectedChatId;
+export const selectSelectedChatId = (state: { chats: ChatsState }) =>
+  state.chats.selectedChatId;
 
-export const selectSelectedChat = (state: { chats: ChatsState }) => state.chats.chats.find(chat => chat._id === state.chats.selectedChatId) || null;
+export const selectSelectedChat = (state: { chats: ChatsState }) =>
+  state.chats.chats.find((chat) => chat._id === state.chats.selectedChatId) ||
+  null;
 
-export const selectChatsLoading = (state: { chats: ChatsState }) => state.chats.isLoading;
-export const selectChatsError = (state: { chats: ChatsState }) => state.chats.error;
+export const selectChatsLoading = (state: { chats: ChatsState }) =>
+  state.chats.isLoading;
+export const selectChatsError = (state: { chats: ChatsState }) =>
+  state.chats.error;
 
-export const selectChatById = (chatId: string) => (state: { chats: ChatsState }) => state.chats.chats.find(chat => chat._id === chatId) || null;
+export const selectChatById =
+  (chatId: string) => (state: { chats: ChatsState }) =>
+    state.chats.chats.find((chat) => chat._id === chatId) || null;
 
 export default chatsSlice.reducer;

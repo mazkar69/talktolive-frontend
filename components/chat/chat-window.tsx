@@ -1,71 +1,220 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import MessageBubble from './message-bubble'
-import TypingIndicator from './typing-indicator'
+import { useState, useRef, useEffect, use } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import MessageBubble from "./message-bubble";
+import TypingIndicator from "./typing-indicator";
+import { MessageInterface, UserInterface } from "@/lib/interfaces";
+import { authApi } from "@/lib/apiRequest";
+import { useSocket } from "@/app/socketProvider";
+import { updateLatestMessage } from "@/store/slices/chatsSlice";
+import { useAppDispatch } from "@/store/hooks";
+import { removeNotification } from "@/store/slices/notificationSlice";
 
 interface Message {
-  id: string
-  text: string
-  sender: 'user' | 'other'
-  timestamp: Date
+  id: string;
+  text: string;
+  sender: "user" | "other";
+  timestamp: Date;
 }
 
 interface ChatWindowProps {
-  selectedChatId: string | null
+  selectedChatId: string | null;
+  user: UserInterface | null;
 }
 
-export default function ChatWindow({ selectedChatId }: ChatWindowProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', text: 'Hey! How are you doing?', sender: 'other', timestamp: new Date(Date.now() - 3600000) },
-    { id: '2', text: 'Great! Just finished the project', sender: 'user', timestamp: new Date(Date.now() - 3500000) },
-    { id: '3', text: 'That sounds amazing! Can you share the details?', sender: 'other', timestamp: new Date(Date.now() - 3400000) },
-  ])
-  const [inputValue, setInputValue] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+export default function ChatWindow({ selectedChatId, user }: ChatWindowProps) {
+  const [messages, setMessages] = useState<MessageInterface[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { socket, emit } = useSocket();
+  const dispatch = useAppDispatch();
+
+  const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
+
+  // Fetch messages when selectedChatId changes
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!inputValue.trim()) return
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: inputValue,
-      sender: 'user',
-      timestamp: new Date(),
+    // Fetch messages for the selected chat from API
+    if (!selectedChatId || socket === null) {
+      setMessages([]);
+      return;
     }
 
-    setMessages([...messages, newMessage])
-    setInputValue('')
+    //Function to fetch messages
+    const getMessagesForChat = async () => {
+      try {
+        setLoading;
+        const response = await authApi.get(`/api/message/${selectedChatId}`);
+        setMessages(response.data);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        setMessages([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMessagesForChat();
+
+    return () => {
+      setMessages([]);
+    };
+  }, [selectedChatId]);
+
+
+  // Scroll to bottom whenever messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  //Socket Listeners and Handlers
+  useEffect(() => {
+    if (!socket || !selectedChatId) return;
+
+    const handleNewMessage = (newMessage: MessageInterface) => {
+      // console.log("New message received in chat-window:", newMessage);
+
+      //Message is for different chat, We are handling this is socketProvider.tsx Which will show notification.
+      if (newMessage.chat !== selectedChatId) return;
+
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    };
+
+    //Remove the msg notification for this chat
+    const removeNotificationForChat = async () => {
+      emit(
+        "clearNotifications",
+        { chatId: selectedChatId },
+        (response: any) => {
+          if (response.success) {
+            dispatch(removeNotification(selectedChatId));
+          }
+        }
+      );
+    };
+    removeNotificationForChat();
+
+    //Join the socket room for this chat. We are joining the chat because we want to listen to typeing. and send the typing event to others in the chat. We can do this without joining the chat and sending the event to all the user in loop.  but this is more efficient. When the user is in the chat then only listen to typing event for that chat. In case of chats we want that user receive the message even if he is not in the chat. That's why we are using userId for messages. and for typing we are using chatId. as a room.
+    emit("joinChat", selectedChatId);
+
+    socket.on("newMessage", handleNewMessage);
+    // Listen for others typing
+    socket.on("typing", (data) => {
+      if (data.chatId === selectedChatId) {
+        // Show "User is typing..." indicator
+        setIsTyping(true);
+        // Hide the typing indicator after a delay
+        // setTimeout(() => {
+        //   setIsTyping(false);
+        // }, 3000); // Adjust the delay as needed
+      }
+    });
+    socket.on("stopTyping", (data) => {
+      if (data.chatId === selectedChatId) {
+        // Hide "User is typing..." indicator
+        setIsTyping(false);
+      }
+    });
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+      socket.off("typing");
+      emit("leaveChat", selectedChatId);
+    };
+  }, [selectedChatId]);
+
+
+  //Handle Input Change send typing event to socket
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isTypingEmittedRef = useRef(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+
+    if (!socket || !selectedChatId) return;
+
+    // Emit typing event only once when user starts typing
+    if (!isTypingEmittedRef.current) {
+      emit("typing", { chatId: selectedChatId });
+      isTypingEmittedRef.current = true;
+    }
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to emit stop typing after 3 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      emit("stopTyping", { chatId: selectedChatId });
+      isTypingEmittedRef.current = false;
+    }, 3000);
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    if (selectedChatId === null) return; // No chat selected
+    if (!user) return; // No user logged in
+    if (!socket?.connected) return;
+
+    console.log("Sending message via socket:", inputValue);
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+
+    // Emit stop typing event
+    emit("stopTyping", { chatId: selectedChatId });
+
+    const messageData: MessageInterface = {
+      message: inputValue,
+      chat: selectedChatId,
+      sender: user,
+      createdAt: new Date(),
+    };
+
+    emit("new message", messageData, (response: any) => {
+      //Response is MessageInterface type
+      if (response && response._id) {
+        console.log("Message delivered with ID:", response._id);
+
+        // const audio = new Audio("/public/sound/message-sent.mp3");
+        // audio.play().catch(err => console.error("Audio playback failed:", err));
+
+        //Update the latestMessage and move chat to top
+        dispatch(updateLatestMessage({ message: response }));
+      } else {
+        console.error("Message delivery failed:", response);
+      }
+    });
+
+    setMessages([...messages, messageData]);
+    setInputValue("");
 
     // Simulate other user typing
-    setIsTyping(true)
-    setTimeout(() => {
-      setIsTyping(false)
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          text: 'That sounds great! Looking forward to seeing it.',
-          sender: 'other',
-          timestamp: new Date(),
-        },
-      ])
-    }, 2000)
-  }
+    // setIsTyping(true);
+    // setTimeout(() => {
+    //   setIsTyping(false);
+    //   setMessages((prev) => [
+    //     ...prev,
+    //     {
+    //       _id: (prev.length + 1).toString(),
+    //       message: "This is a simulated reply.",
+    //       sender: {} as UserInterface,
+    //       createdAt: new Date(),
+    //       chat: selectedChatId,
+    //       readBy: [],
+    //       updatedAt: "",
+    //     },
+    //   ]);
+    // }, 2000);
+  };
 
   return (
-    <div className="flex-1 flex flex-col bg-background ">
+    <div className="flex-1 flex flex-col bg-background max-h-[calc(100vh-4rem)] ">
       {/* Messages Area with Page Transition */}
       <motion.div
         key={selectedChatId}
@@ -76,11 +225,11 @@ export default function ChatWindow({ selectedChatId }: ChatWindowProps) {
         className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4"
       >
         <AnimatePresence mode="popLayout">
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
+          {messages.map((message: MessageInterface, i) => (
+            <MessageBubble key={i} message={message} user={user} />
           ))}
         </AnimatePresence>
-        
+
         {isTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </motion.div>
@@ -96,7 +245,7 @@ export default function ChatWindow({ selectedChatId }: ChatWindowProps) {
         <motion.input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => handleInputChange(e)}
           placeholder="Type a message..."
           className="flex-1 px-4 py-3 bg-card border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:border-blue-500 transition-colors text-sm md:text-base"
           whileFocus={{ scale: 1.01 }}
@@ -111,5 +260,5 @@ export default function ChatWindow({ selectedChatId }: ChatWindowProps) {
         </motion.button>
       </motion.form>
     </div>
-  )
+  );
 }

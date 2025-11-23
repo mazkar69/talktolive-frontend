@@ -21,19 +21,17 @@ import {
   setError,
   selectSelectedChat,
 } from "@/store/slices/chatsSlice";
-import { setConnected, setConnectionError, selectIsActive } from "@/store/slices/socketSlice";
+import { selectAllNotifications, setNotifications } from "@/store/slices/notificationSlice";
 import { getChatName } from "@/lib/utils";
 import { ChatInterface, UserInterface } from "@/lib/interfaces";
 
-export default function ChatApp({user}: {user: UserInterface | null}) {
-
-  const socketRef = useRef<Socket | null>(null);
+export default function ChatApp({ user }: { user: UserInterface | null }) {
   const dispatch = useAppDispatch();
   const chats = useAppSelector(selectAllChats);
   const selectedChatId = useAppSelector(selectSelectedChatId);
-  const selectedChat:ChatInterface | null = useAppSelector(selectSelectedChat);
-  const isActive = useAppSelector(selectIsActive);
-  
+  const selectedChat: ChatInterface | null = useAppSelector(selectSelectedChat);
+  const notifications = useAppSelector(selectAllNotifications);
+
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -49,17 +47,18 @@ export default function ChatApp({user}: {user: UserInterface | null}) {
     setShowMobileChat(true);
   };
 
-
   const handleBackToList = () => {
     setShowMobileChat(false);
   };
 
+  // Fetch chats and notifications on mount
   useEffect(() => {
     const fetchChats = async () => {
       dispatch(setLoading(true));
-      
+
       try {
         const response = await authApi.get("/api/chat");
+        console.log("Fetched chats:", response.data);
         dispatch(setChats(response.data));
       } catch (error) {
         console.error("Error fetching chats:", error);
@@ -67,94 +66,57 @@ export default function ChatApp({user}: {user: UserInterface | null}) {
       }
     };
 
+    const fetchNotifications = async () => {
+      try {
+        const response = await authApi.get("/api/notification");
+        console.log("Fetched notifications:", response.data);
+        dispatch(setNotifications(response.data));
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
     fetchChats();
+    fetchNotifications();
   }, [dispatch]);
 
 
+  // Sync notifications with chats' unseenMsgCount
+  useEffect(() => {
+
+    if(notifications.length === 0) {
+      //If no notifications, reset unseenMsgCount to 0 for all chats
+      dispatch(setChats(chats.map(chat => ({ ...chat, unseenMsgCount: 0 }))));
+      return;
+    };
+
+    //add the count from the notification to the chat list  unseenMsgCount
+    notifications.forEach(notif => {
+      dispatch(setChats(chats.map(chat => 
+        chat._id === notif.chat._id 
+          ? { ...chat, unseenMsgCount: notif.count } 
+          : chat
+      )));
+    });
+  }, [notifications]);
+
   //Creting one to one chat. userId is the id of the user to chat with
-  const onAddChat = async(userId: string) => {
+  const onAddChat = async (userId: string) => {
     try {
       const response = await authApi.post("/api/chat", { userId });
-      dispatch(addChat(response.data));             //Push the new chat to chats array
-      dispatch(selectChat(response.data._id));      //Set the selctedChatId
-      setShowMobileChat(true);                    
-
+      dispatch(addChat(response.data)); //Push the new chat to chats array
+      dispatch(selectChat(response.data._id)); //Set the selctedChatId
+      setShowMobileChat(true);
     } catch (error) {
       console.error("Error creating chat:", error);
       dispatch(setError("Failed to create chat"));
     }
-   
-  }
+  };
 
-  // -------------SocketIO Setup-------------
-  useEffect(() => {
-
-    if(!user?._id || !isActive) {
-      // Disconnect socket if user is not active
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        dispatch(setConnected(false));
-      }
-      return;
-    };
-
-
-    const domain = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
-    const token = user.token;
-    
-    const socket = io(domain, {
-      auth: {
-        token: token,
-      },
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
-    
-    socketRef.current = socket;
-    
-    socket.emit("setup", user);
-
-    socket.on("connected", () => {
-      console.log("Connected to Socket.IO server");
-      dispatch(setConnected(true));
-      dispatch(setConnectionError(null));
-    });
-
-    socket.on("newMessage", (message) => {
-      console.log("New message received:", message);
-      // Here you can dispatch an action to add the message to the store
-    });
-
-    socket.on("disconnect", (reason) => {
-      console.log("Disconnected from Socket.IO server:", reason);
-      dispatch(setConnected(false));
-      if (reason === 'io server disconnect') {
-        socket.connect();
-      }
-    });
-
-    socket.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
-      dispatch(setConnected(false));
-      dispatch(setConnectionError(error.message));
-    });
-
-    return () => {
-      socket.disconnect();
-      dispatch(setConnected(false));
-    };
-
-  }, [user, isActive, dispatch]);
-  //When the isActive becomes false, disconnect the socket, and in true connect the socket.
-  // ----------------------------------------
-
-// console.log("selectedChat:",  selectedChat);
+  // console.log("selectedChat:",  selectedChat);
 
   return (
     <div className="flex min-h-screen max-h-screen bg-background text-foreground border-2 border-red-600">
-      
       <div className="hidden md:flex md:flex-col ">
         <ChatSidebar
           chats={chats}
@@ -205,7 +167,7 @@ export default function ChatApp({user}: {user: UserInterface | null}) {
             {/* <span className="text-2xl">{chats.find(c => c._id === selectedChatId)?.avatar}</span> */}
             <div className="min-w-0">
               <h2 className="font-semibold text-sm md:text-base truncate">
-                {getChatName(selectedChat)} 
+                {getChatName(selectedChat)}
               </h2>
               <p className="text-xs text-muted-foreground">Active now</p>
             </div>
@@ -235,7 +197,26 @@ export default function ChatApp({user}: {user: UserInterface | null}) {
           </div>
         </motion.header>
 
-        <ChatWindow selectedChatId={selectedChatId} />
+        {!selectedChatId ? (
+          //  Chat Window Placeholder
+          <div className="flex-1 flex flex-col items-center justify-center bg-background/50 text-muted-foreground p-4 md:p-6">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 100 }}
+              className="text-center"
+            >
+              <h2 className="text-lg font-semibold mb-2">
+                Select a chat to start messaging
+              </h2>
+              <p className="text-sm">Your conversations will appear here.</p>
+            </motion.div>
+          </div>
+        ) : (
+          <ChatWindow selectedChatId={selectedChatId} user={user} />
+        )}
+
+     
       </div>
 
       {showVideoCall && (

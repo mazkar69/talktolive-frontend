@@ -147,11 +147,22 @@ export default function ChatSidebar({
                       />
                     </motion.span>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate text-sm md:text-base">
-                        {getChatName(chat)}
-                      </h3>
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-medium truncate text-sm md:text-base flex-1">
+                          {getChatName(chat)}
+                        </h3>
+                        {chat.unseenMsgCount! > 0 && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="flex items-center justify-center min-w-[20px] h-5 px-1.5 bg-blue-500 text-white text-xs font-semibold rounded-full"
+                          >
+                            {chat.unseenMsgCount}
+                          </motion.span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground truncate">
-                        {chat?.latestMessage}
+                        {chat?.latestMessage?.message || "No messages yet"}
                       </p>
                     </div>
                     {selectedChatId === chat._id && (

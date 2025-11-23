@@ -1,20 +1,10 @@
 'use client'
 
+import { MessageInterface, UserInterface } from '@/lib/interfaces'
 import { motion } from 'framer-motion'
+export default function MessageBubble({ message,user }: { message: MessageInterface, user: UserInterface | null }) {
 
-interface Message {
-  id: string
-  text: string
-  sender: 'user' | 'other'
-  timestamp: Date
-}
-
-interface MessageBubbleProps {
-  message: Message
-}
-
-export default function MessageBubble({ message }: MessageBubbleProps) {
-  const isOwn = message.sender === 'user'
+  let isOwn = message.sender._id === user?._id;
 
   const containerVariants = {
     hidden: { opacity: 0, y: 10 },
@@ -50,9 +40,9 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
             : 'bg-card border border-border text-foreground rounded-bl-none hover:border-muted-foreground'
         }`}
       >
-        <p className="text-sm">{message.text}</p>
+        <p className="text-sm">{message.message}</p>
         <p className={`text-xs mt-1 ${isOwn ? 'text-blue-100' : 'text-muted-foreground'}`}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(message.createdAt.toString()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </p>
       </motion.div>
     </motion.div>

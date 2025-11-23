@@ -12,8 +12,29 @@ interface ChatInterface {
     chatName: string
     isGroupChat: boolean
     users: UserInterface[]
-    latestMessage: string
+    latestMessage?: MessageInterface
+    unseenMsgCount?: number
 }
 
 
-export type { UserInterface, ChatInterface }
+interface MessageInterface {
+    sender:  UserInterface,
+    message?: String,
+    chat?: String,
+    readBy?: String[],
+    _id?: String,
+    reference?: String,
+    createdAt: Date | String,
+    updatedAt?: String,
+}
+
+interface NotificationInterface {
+    _id: string;
+    chat: ChatInterface;
+    count: number;
+    message: MessageInterface; // ID of last message
+    isRead?: boolean;
+}
+
+
+export type { UserInterface, ChatInterface, MessageInterface, NotificationInterface }
