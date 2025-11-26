@@ -20,6 +20,7 @@ export default function NotificationsDropdown() {
 
   const handleNotificationClick = async (chatId: string) => {
     try {
+      
       dispatch(selectChat(chatId));
       setIsOpen(false);
     } catch (error) {
@@ -27,8 +28,11 @@ export default function NotificationsDropdown() {
     }
   };
 
+  //NOTE: We are not clearing the notifications here. When the user click on the notification, we redirect to chat window page and in chatWindow page useEffect will run to clear the notifications for the selected chat.
+
   const handleMarkAllAsRead = () => {
     dispatch(clearNotifications());
+    //Yet to implement backend API to mark notifications as read
   };
 
   return (

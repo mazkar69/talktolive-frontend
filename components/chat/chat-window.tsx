@@ -11,19 +11,17 @@ import { updateLatestMessage } from "@/store/slices/chatsSlice";
 import { useAppDispatch } from "@/store/hooks";
 import { removeNotification } from "@/store/slices/notificationSlice";
 
-interface Message {
-  id: string;
-  text: string;
-  sender: "user" | "other";
-  timestamp: Date;
-}
-
 interface ChatWindowProps {
   selectedChatId: string | null;
   user: UserInterface | null;
+  setUserStatus: (status: string) => void;
 }
 
-export default function ChatWindow({ selectedChatId, user }: ChatWindowProps) {
+export default function ChatWindow({
+  selectedChatId,
+  user,
+  setUserStatus,
+}: ChatWindowProps) {
   const [messages, setMessages] = useState<MessageInterface[]>([]);
   const [loading, setLoading] = useState(false);
   const { socket, emit } = useSocket();
@@ -36,7 +34,6 @@ export default function ChatWindow({ selectedChatId, user }: ChatWindowProps) {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
 
   // Fetch messages when selectedChatId changes
   useEffect(() => {
@@ -66,7 +63,6 @@ export default function ChatWindow({ selectedChatId, user }: ChatWindowProps) {
       setMessages([]);
     };
   }, [selectedChatId]);
-
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -102,6 +98,17 @@ export default function ChatWindow({ selectedChatId, user }: ChatWindowProps) {
 
     //Join the socket room for this chat. We are joining the chat because we want to listen to typeing. and send the typing event to others in the chat. We can do this without joining the chat and sending the event to all the user in loop.  but this is more efficient. When the user is in the chat then only listen to typing event for that chat. In case of chats we want that user receive the message even if he is not in the chat. That's why we are using userId for messages. and for typing we are using chatId. as a room.
     emit("joinChat", selectedChatId);
+    emit("getUserStatus", { chatId: selectedChatId }, (response: any) => {
+      // console.log("User status response:", response);
+      if (response?.status) {
+        if (response?.status == "offline") {
+          const lastSeen = new Date(response?.lastSeen);
+          setUserStatus(`Last seen: ${lastSeen.toLocaleString()}`);
+        } else {
+          setUserStatus(response?.status);
+        }
+      }
+    });
 
     socket.on("newMessage", handleNewMessage);
     // Listen for others typing
@@ -122,13 +129,25 @@ export default function ChatWindow({ selectedChatId, user }: ChatWindowProps) {
       }
     });
 
+    socket.on("userStatus", (data) => {
+      if(data?.chatId !== selectedChatId) return;
+      // console.log("User status update:", data);
+      
+      if (data?.status == "offline") {
+        const lastSeen = new Date(data?.lastSeen);
+        //Convert into string and setUserStatus
+        setUserStatus(`Last seen: ${lastSeen.toLocaleString()}`);
+      } else {
+        setUserStatus(data?.status);
+      }
+    });
+
     return () => {
       socket.off("newMessage", handleNewMessage);
       socket.off("typing");
       emit("leaveChat", selectedChatId);
     };
   }, [selectedChatId]);
-
 
   //Handle Input Change send typing event to socket
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -193,24 +212,6 @@ export default function ChatWindow({ selectedChatId, user }: ChatWindowProps) {
 
     setMessages([...messages, messageData]);
     setInputValue("");
-
-    // Simulate other user typing
-    // setIsTyping(true);
-    // setTimeout(() => {
-    //   setIsTyping(false);
-    //   setMessages((prev) => [
-    //     ...prev,
-    //     {
-    //       _id: (prev.length + 1).toString(),
-    //       message: "This is a simulated reply.",
-    //       sender: {} as UserInterface,
-    //       createdAt: new Date(),
-    //       chat: selectedChatId,
-    //       readBy: [],
-    //       updatedAt: "",
-    //     },
-    //   ]);
-    // }, 2000);
   };
 
   return (

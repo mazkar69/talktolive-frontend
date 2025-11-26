@@ -3,7 +3,9 @@ interface UserInterface {
     name: string
     email: string
     pic: string,
-    token:string
+    token:string,
+    lastSeen?: Date,
+    
 }
 
 

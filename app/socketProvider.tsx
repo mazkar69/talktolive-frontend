@@ -41,8 +41,15 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
-  const selectedChatId = useAppSelector(selectSelectedChatId);
   const isActive = useAppSelector(selectIsActive);
+  
+  // Use ref to track latest selectedChatId without triggering reconnection
+  const selectedChatIdRef = useRef<string | null>(null);
+  const currentSelectedChatId = useAppSelector(selectSelectedChatId);
+  
+  useEffect(() => {
+    selectedChatIdRef.current = currentSelectedChatId;
+  }, [currentSelectedChatId]);
 
   useEffect(() => {
     if (!user?._id || !isActive) {
@@ -87,9 +94,10 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       dispatch(updateLatestMessage({ message: newMessage }));
 
       //Push the notification if the message is not for the current chat
-      console.log("Selected Chat ID:", selectedChatId);
+      const currentChatId = selectedChatIdRef.current;
+      console.log("Selected Chat ID:", currentChatId);
       console.log("New Message Chat ID:", newMessage.chat);
-      if (newMessage.chat != selectedChatId) {
+      if (newMessage.chat != currentChatId) {
         // Add to notifications
         newSocket.emit("addNotification", {
           recipient: user._id,

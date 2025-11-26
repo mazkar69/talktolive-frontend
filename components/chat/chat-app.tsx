@@ -31,7 +31,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
   const selectedChatId = useAppSelector(selectSelectedChatId);
   const selectedChat: ChatInterface | null = useAppSelector(selectSelectedChat);
   const notifications = useAppSelector(selectAllNotifications);
-
+  const [userStatus, setUserStatus] = useState<string | null>(null);
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -169,7 +169,14 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
               <h2 className="font-semibold text-sm md:text-base truncate">
                 {getChatName(selectedChat)}
               </h2>
-              <p className="text-xs text-muted-foreground">Active now</p>
+              <div className="flex items-center gap-1.5">
+                {userStatus === "online" && (
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {userStatus && userStatus}
+                </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -213,7 +220,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
             </motion.div>
           </div>
         ) : (
-          <ChatWindow selectedChatId={selectedChatId} user={user} />
+          <ChatWindow selectedChatId={selectedChatId} user={user} setUserStatus={setUserStatus} />
         )}
 
      
