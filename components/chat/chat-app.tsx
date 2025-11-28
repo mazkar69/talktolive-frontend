@@ -9,6 +9,7 @@ import VideoCallModal from "./video-call-modal";
 import NotificationsDropdown from "./notifications-dropdown";
 import SettingsModal from "./settings-modal";
 import ConnectionStatus from "./connection-status";
+import RandomTalkModal from "./random-talk-modal";
 import { authApi } from "@/lib/apiRequest";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -35,6 +36,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
   const [showVideoCall, setShowVideoCall] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showRandomTalk, setShowRandomTalk] = useState(false);
   const [userProfile, setUserProfile] = useState({
     name: "John Doe",
     email: "john@example.com",
@@ -123,6 +125,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
           selectedChatId={selectedChatId}
           onSelectChat={handleSelectChat}
           onAddChat={onAddChat}
+          onOpenRandomTalk={() => setShowRandomTalk(true)}
         />
       </div>
 
@@ -136,6 +139,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
           selectedChatId={selectedChatId}
           onSelectChat={handleSelectChat}
           onAddChat={onAddChat}
+          onOpenRandomTalk={() => setShowRandomTalk(true)}
         />
       </div>
 
@@ -235,6 +239,13 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
           userProfile={userProfile}
           setUserProfile={setUserProfile}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {showRandomTalk && (
+        <RandomTalkModal
+          isOpen={showRandomTalk}
+          onClose={() => setShowRandomTalk(false)}
         />
       )}
     </div>

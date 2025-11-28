@@ -30,6 +30,7 @@ interface MessageInterface {
     updatedAt?: String,
 }
 
+
 interface NotificationInterface {
     _id: string;
     chat: ChatInterface;

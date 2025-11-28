@@ -12,6 +12,7 @@ interface ChatSidebarProps {
   selectedChatId: string | null;
   onSelectChat: (id: string) => void;
   onAddChat: (userId: string) => void;
+  onOpenRandomTalk: () => void;
 }
 
 export default function ChatSidebar({
@@ -19,6 +20,7 @@ export default function ChatSidebar({
   selectedChatId,
   onSelectChat,
   onAddChat,
+  onOpenRandomTalk,
 }: ChatSidebarProps) {
   const [showSearch, setShowSearch] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
@@ -54,6 +56,18 @@ export default function ChatSidebar({
         transition={{ type: "spring", stiffness: 100 }}
       >
         <h1 className="text-xl md:text-2xl font-bold mb-4">TalkToLive</h1>
+        
+        {/* Random Talk Button - Prominent */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onOpenRandomTalk}
+          className="w-full mb-3 px-4 py-3 bg-linear-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg flex items-center justify-center gap-2"
+        >
+          <span className="text-xl">🎲</span>
+          <span>Random Talk</span>
+        </motion.button>
+        
         <div className="flex gap-2">
           <motion.button
             whileHover={{ scale: 1.05 }}
