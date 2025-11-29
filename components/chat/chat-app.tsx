@@ -118,7 +118,8 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
   // console.log("selectedChat:",  selectedChat);
 
   return (
-    <div className="flex min-h-screen max-h-screen bg-background text-foreground border-2 border-red-600">
+    <div className="flex min-h-screen max-h-screen bg-background text-foreground">
+    {/* <div className="flex min-h-screen max-h-screen bg-background text-foreground border-2 border-red-600"> */}
       <div className="hidden md:flex md:flex-col ">
         <ChatSidebar
           chats={chats}
