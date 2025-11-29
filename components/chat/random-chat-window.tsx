@@ -68,7 +68,7 @@ export default function RandomChatWindow() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isTypingEmittedRef = useRef(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputMessage(e.target.value);
 
     if (!socket) return;
@@ -222,7 +222,7 @@ export default function RandomChatWindow() {
           <div className="flex-1 relative">
             <textarea
               value={inputMessage}
-              onChange={(e) => handleInputChange(e)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>)=>handleInputChange(e)}
               onKeyDown={handleKeyPress}
               placeholder="Type a message..."
               className="w-full px-4 py-3 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm md:text-base"

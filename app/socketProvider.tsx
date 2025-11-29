@@ -63,7 +63,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     }
 
     const domain =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
+      process.env.NEXT_PUBLIC_BACKEND_URI || "http://localhost:9009";
     const token = user.token;
 
     const newSocket = io(domain, {
