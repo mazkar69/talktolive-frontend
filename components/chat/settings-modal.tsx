@@ -4,27 +4,22 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAppDispatch } from '@/store/hooks'
 import { clearUser } from '@/store/slices/userSlice'
+import { UserInterface } from '@/lib/interfaces'
 
-interface UserProfile {
-  name: string
-  email: string
-  avatar: string
-  hideFromSearch: boolean
-}
 
 interface SettingsModalProps {
-  userProfile: UserProfile
-  setUserProfile: (profile: UserProfile) => void
+  userProfile: UserInterface
+  // setUserProfile: (profile: UserInterface) => void
   onClose: () => void
 }
 
-export default function SettingsModal({ userProfile, setUserProfile, onClose }: SettingsModalProps) {
+export default function SettingsModal({ userProfile, onClose }: SettingsModalProps) {
   const dispatch = useAppDispatch()
   const [formData, setFormData] = useState(userProfile)
   const [saved, setSaved] = useState(false)
 
   const handleSave = () => {
-    setUserProfile(formData)
+    // setUserProfile(formData)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -100,69 +95,7 @@ export default function SettingsModal({ userProfile, setUserProfile, onClose }: 
               </div>
             </div>
 
-            {/* Privacy Section */}
-            <div>
-              <h3 className="font-semibold text-sm mb-4 text-muted-foreground uppercase tracking-wide">Privacy Settings</h3>
-              
-              <div className="space-y-3">
-                {/* Hide from search toggle */}
-                <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border hover:border-accent transition-colors">
-                  <div>
-                    <p className="text-sm font-medium">Hide from search</p>
-                    <p className="text-xs text-muted-foreground">Users won't be able to find your username</p>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setFormData({ ...formData, hideFromSearch: !formData.hideFromSearch })}
-                    className={`relative w-12 h-7 rounded-full transition-colors ${
-                      formData.hideFromSearch ? 'bg-accent' : 'bg-muted'
-                    }`}
-                  >
-                    <motion.div
-                      animate={{ x: formData.hideFromSearch ? 22 : 2 }}
-                      className="absolute top-1 w-5 h-5 bg-white rounded-full shadow"
-                    />
-                  </motion.button>
-                </div>
 
-                {/* Online status */}
-                <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border hover:border-accent transition-colors">
-                  <div>
-                    <p className="text-sm font-medium">Show online status</p>
-                    <p className="text-xs text-muted-foreground">Let others see when you're active</p>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative w-12 h-7 rounded-full bg-accent"
-                  >
-                    <motion.div
-                      animate={{ x: 22 }}
-                      className="absolute top-1 w-5 h-5 bg-white rounded-full shadow"
-                    />
-                  </motion.button>
-                </div>
-
-                {/* Message read receipts */}
-                <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border hover:border-accent transition-colors">
-                  <div>
-                    <p className="text-sm font-medium">Message read receipts</p>
-                    <p className="text-xs text-muted-foreground">Show when you've read a message</p>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative w-12 h-7 rounded-full bg-accent"
-                  >
-                    <motion.div
-                      animate={{ x: 22 }}
-                      className="absolute top-1 w-5 h-5 bg-white rounded-full shadow"
-                    />
-                  </motion.button>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Footer */}

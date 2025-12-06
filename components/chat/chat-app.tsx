@@ -26,7 +26,7 @@ import { selectAllNotifications, setNotifications } from "@/store/slices/notific
 import { getChatName } from "@/lib/utils";
 import { ChatInterface, UserInterface } from "@/lib/interfaces";
 
-export default function ChatApp({ user }: { user: UserInterface | null }) {
+export default function ChatApp({ user }: { user: UserInterface  }) {
   const dispatch = useAppDispatch();
   const chats = useAppSelector(selectAllChats);
   const selectedChatId = useAppSelector(selectSelectedChatId);
@@ -37,12 +37,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showRandomTalk, setShowRandomTalk] = useState(false);
-  const [userProfile, setUserProfile] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    avatar: "👤",
-    hideFromSearch: false,
-  });
+
 
   const handleSelectChat = (id: string) => {
     dispatch(selectChat(id));
@@ -185,9 +180,9 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <ConnectionStatus />
+            {/* <ConnectionStatus /> */}
             <NotificationsDropdown />
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowVideoCall(true)}
@@ -195,7 +190,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
               title="Start video call"
             >
               📹
-            </motion.button>
+            </motion.button> */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -237,8 +232,7 @@ export default function ChatApp({ user }: { user: UserInterface | null }) {
 
       {showSettings && (
         <SettingsModal
-          userProfile={userProfile}
-          setUserProfile={setUserProfile}
+          userProfile={user}
           onClose={() => setShowSettings(false)}
         />
       )}

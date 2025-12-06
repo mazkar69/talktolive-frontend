@@ -1,5 +1,6 @@
 interface UserInterface {
     _id: string
+    countryCode?: string,
     name: string
     email: string
     pic: string,

@@ -1,63 +1,73 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import api from '@/lib/apiRequest'
-import { useAppDispatch } from '@/store/hooks'
-import { setUser } from '@/store/slices/userSlice'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import api from "@/lib/apiRequest";
+import { useAppDispatch } from "@/store/hooks";
+import { setUser } from "@/store/slices/userSlice";
+import CountrySelector from "./CountrySelector";
 
 export default function RegisterForm() {
-  const router = useRouter()
-  const dispatch = useAppDispatch()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [countryCode, setCountryCode] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    e.preventDefault()
-    
-    if (password !== confirmPassword) {
-      alert('Passwords do not match')
-      return
+
+
+    setIsLoading(true);
+    if(!countryCode || countryCode.trim() === "") {
+      alert("Please select your country.");
+      setIsLoading(false);
+      return;
     }
-
-    setIsLoading(true)
-    
-
     try {
-        const response = await api.post('/api/user', {
+      const response = await api.post("/api/user", {
         name,
         email,
         password,
-      })
-      console.log('Registration successful:', response.data)
-      
+        countryCode,      //IN, PK etc
+      });
+      console.log("Registration successful:", response.data);
+
       // Store user data in Redux store
-      dispatch(setUser(response.data))
-      
+      dispatch(setUser(response.data));
+
       // Redirect to home/chat page
-      router.push('/')
-      
-      setIsLoading(false)
-      return
+      router.push("/");
+
+      setIsLoading(false);
+      return;
     } catch (error) {
-      console.error('Registration error:', error)
-      alert('An error occurred during registration. Please try again.')
-      setIsLoading(false)
-      return
-      
-    }finally {
-      setIsLoading(false)
+      console.error("Registration error:", error);
+      alert("An error occurred during registration. Please try again.");
+      setIsLoading(false);
+      return;
+    } finally {
+      setIsLoading(false);
     }
-    
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <label className="block text-sm font-medium text-slate-200 mb-2">
+          Select Country
+        </label>
+        <CountrySelector countryCode={countryCode} setCountryCode={setCountryCode} />
+      </motion.div>
+
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -112,23 +122,7 @@ export default function RegisterForm() {
         />
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <label className="block text-sm font-medium text-slate-200 mb-2">
-          Confirm Password
-        </label>
-        <input
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="••••••••"
-          className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-400 transition-colors"
-          required
-        />
-      </motion.div>
+
 
       <motion.button
         initial={{ opacity: 0, x: -20 }}
@@ -140,8 +134,8 @@ export default function RegisterForm() {
         disabled={isLoading}
         className="w-full mt-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isLoading ? 'Creating account...' : 'Create Account'}
+        {isLoading ? "Creating account..." : "Create Account"}
       </motion.button>
     </form>
-  )
+  );
 }
